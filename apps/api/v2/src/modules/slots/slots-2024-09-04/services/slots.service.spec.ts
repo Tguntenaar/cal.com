@@ -2,6 +2,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
@@ -21,6 +22,16 @@ describe("SlotsService_2024_09_04", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SlotsService_2024_09_04,
+        {
+          provide: PrismaReadService,
+          useValue: {
+            prisma: {
+              eventType: {
+                findMany: jest.fn().mockResolvedValue([]),
+              },
+            },
+          },
+        },
         {
           provide: SlotsInputService_2024_09_04,
           useValue: {
@@ -146,7 +157,11 @@ describe("SlotsService_2024_09_04", () => {
         ...inputQuery,
       });
 
-      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = sharedTestData.baseInputQuery;
+      const queryWithoutStartEndAndType = Object.fromEntries(
+        Object.entries(sharedTestData.baseInputQuery).filter(
+          ([key]) => !["start", "end", "type"].includes(key)
+        )
+      );
 
       expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
         input: {
