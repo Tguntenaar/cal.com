@@ -32,6 +32,7 @@ import {
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SlotFormat } from "@calcom/platform-enums";
 import {
   GetSlotsInput_2024_09_04,
   GetSlotsInputPipe,
@@ -248,6 +249,37 @@ export class SlotsController_2024_09_04 {
     return {
       data: slots,
       status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/all-of-day")
+  @ApiOperation({
+    summary: "Get all available slots for all event types on a given day",
+    description:
+      "Aggregates available slots across all non-archived, non-hidden event types for the specified date.",
+  })
+  @ApiQuery({ name: "date", required: true, example: "2050-09-05" })
+  @ApiQuery({
+    name: "timeZone",
+    required: false,
+    description: "Time zone for slot formatting. Defaults to UTC.",
+    example: "Europe/London",
+  })
+  @ApiQuery({
+    name: "format",
+    required: false,
+    description: "Format of slot times in response. Use 'range' to get start and end times.",
+    example: "range",
+  })
+  async getAllSlotsForDay(
+    @Query("date") date: string,
+    @Query("timeZone") timeZone?: string,
+    @Query("format") format?: SlotFormat
+  ): Promise<ApiResponse<unknown>> {
+    const data = await this.slotsService.getAllSlotsForDay({ date, timeZone, format });
+    return {
+      status: SUCCESS_STATUS,
+      data,
     };
   }
 
